@@ -97,6 +97,18 @@ contract AKTokenPreSwap is Ownable, Pausable {
     }
 
     /**
+     * @dev Set the AK token supply for swap in the current chain
+     * @param _akSupply AK token supply for swap in the current chain
+     */
+    function setAkSupply(uint256 _akSupply) public onlyOwner {
+        require(
+            _akSupply > 0,
+            "_akSupply must be greater than zero"
+        );
+        akSupply = _akSupply;
+    }
+
+    /**
      * @dev Set the USDT and AK token contract
      * @param _usdt USDT token contract
      * @param _ak AK token contract
