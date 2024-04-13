@@ -37,6 +37,9 @@ contract AKTokenPreSwap is Ownable, Pausable {
     // Maximum quota for a single account in the current chain
     uint256 public accountMaxQuota;
 
+    // The wallet address of the foundation
+    address public foundationWallet;
+
     // The accumulated amount purchased by the user in the current chain
     // account => quota
     mapping(address => uint256) public accountQuotas;
@@ -56,19 +59,22 @@ contract AKTokenPreSwap is Ownable, Pausable {
      * @param _akSupply AK token supply for swap in the current chain
      * @param _akPrice The price of swap (unit: wei)
      * @param _accountMaxQuota Maximum quota for a single account in the current chain
+     * @param _foundationWallet The wallet address of the foundation
      */
     constructor(
         IERC20 _usdtToken,
         IERC20 _akToken,
         uint256 _akSupply,
         uint256 _akPrice,
-        uint256 _accountMaxQuota
+        uint256 _accountMaxQuota,
+        address _foundationWallet
     ) Ownable(msg.sender) {
         usdtToken = _usdtToken;
         akToken = _akToken;
         akSupply = _akSupply;
         akPrice = _akPrice;
         accountMaxQuota = _accountMaxQuota;
+        foundationWallet = _foundationWallet;
     }
 
     /**
@@ -82,6 +88,15 @@ contract AKTokenPreSwap is Ownable, Pausable {
     function setPrice(uint256 _akPrice) public onlyOwner {
         require(_akPrice > 0, "Token price must be greater than zero");
         akPrice = _akPrice;
+    }
+
+    /**
+     * @dev Set the foundation wallet address
+     * @param _foundationWallet The wallet address of the foundation
+     */
+    function setFoundationWallet(address _foundationWallet) public onlyOwner {
+        require(_foundationWallet != address(0), "Foundation wallet can't be zero");
+        foundationWallet = _foundationWallet;
     }
 
     /**
@@ -132,6 +147,7 @@ contract AKTokenPreSwap is Ownable, Pausable {
      */
     function swapAK(uint256 usdtAmount) public whenNotPaused {
         uint256 akAmount = evaSwapAK(usdtAmount);
+        require(foundationWallet != address(0), "Foundation wallet can't be zero");
         require(usdtAmount > 0, "USDT amount must be greater than zero");
         require((akAmount + akSold) <= akSupply, "Exceeded maximum AK supply");
         require(
@@ -147,7 +163,7 @@ contract AKTokenPreSwap is Ownable, Pausable {
             "Insufficient AK token balance"
         );
 
-        usdtToken.transferFrom(msg.sender, address(this), usdtAmount);
+        usdtToken.transferFrom(msg.sender, foundationWallet, usdtAmount);
         akToken.transfer(msg.sender, akAmount);
 
         akSold += akAmount;
@@ -158,7 +174,10 @@ contract AKTokenPreSwap is Ownable, Pausable {
     }
 
     /**
-     * @dev Withdraw USDT or AK token
+     * @dev Withdraw tokens from the contract
+     * only the owner can call, 
+     * Prevent tokens from being transferred to this contract address due to errors.
+     * 
      * @param token The token contract
      * @param to The recipient address
      * @param amount The amount of token
