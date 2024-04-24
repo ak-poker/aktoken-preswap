@@ -5,7 +5,7 @@ Smart contract code for AK token pre swap at official website.
 ## Contract Addresses
 
 ### At Ethereum Network: 
-- AK Swap: 0xd281514a8589237a245206d46aa91692373fa6bb
+- AK Swap: 0x45c983EE89A5a4491157Da849D55b09B56774e88
 - AK Token: 0x68a5B2D6015c9df176C62a71199Df311550895aB
 - USDT Token: 0xdAC17F958D2ee523a2206206994597C13D831ec7
 
